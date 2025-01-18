@@ -1,9 +1,11 @@
 # KokoDOS: Yet another AI voice assistant
 
-KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/yourusername/kokoro-fastapi), KokoDOS provides a realistic, real-time voice interaction experience.
+KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)), KokoDOS provides a realistic, real-time voice interaction experience.
 
 ## Installation
-Steps are mostly the same as for GlaDOS:
+Steps are mostly the same as for GlaDOS. Before cloning this repo, install the following: 
+1. `llama3.1:latest` LLM via [Ollama](https://ollama.com/) 
+2. [Kokoro FastAPI](https://github.com/remsky/Kokoro-FastAPI?tab=readme-ov-file#quick-start) using Docker
 
 ## Windows Installation Process
 1. Open the Microsoft Store, search for `python` and install Python 3.12
@@ -46,6 +48,14 @@ This is still experimental. Any issues can be addressed in the Discord server. I
 
 4. In the a terminal in the GLaODS folder, run `./install_ubuntu.sh`, and wait until the installation in complete.
 5. Run  `./start_ubuntu.sh` to start KokoDOS!
+
+## Some caveats and plans for the future
+
+- At some point I'll rename the files, configs, and functions to reflect the name of this project (KokoDOS).
+- This project is using Kokoro's phonemization pipeline and TTS. There is still a lot of code cleanup to be done.
+- At least 12GB of VRAM is required to run KokoDOS smoothly and have a real-time conversation. Use a smaller LLM if you don't have enough VRAM.
+- The plan is to add some useful features to the voice assistant such as clipboard access, web access, possibly a vision LLM.
+
 
 Below is the original GlaDOS readme.
 ---
