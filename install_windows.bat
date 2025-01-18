@@ -24,10 +24,8 @@ setlocal enabledelayedexpansion
 
 :: Define the list of files with their URLs and local paths
 :: Removed quotes around the entire string and fixed paths
-set "files[0]=https://github.com/dnhkng/GlaDOS/releases/download/0.1/glados.onnx;models/glados.onnx"
-set "files[1]=https://github.com/dnhkng/GlaDOS/releases/download/0.1/nemo-parakeet_tdt_ctc_110m.onnx;models/nemo-parakeet_tdt_ctc_110m.onnx"
-set "files[2]=https://github.com/dnhkng/GlaDOS/releases/download/0.1/phomenizer_en.onnx;models/phomenizer_en.onnx"
-set "files[3]=https://github.com/dnhkng/GlaDOS/releases/download/0.1/silero_vad.onnx;models/silero_vad.onnx"
+set "files[0]=https://github.com/dnhkng/GlaDOS/releases/download/0.1/nemo-parakeet_tdt_ctc_110m.onnx;models/nemo-parakeet_tdt_ctc_110m.onnx"
+set "files[1]=https://github.com/dnhkng/GlaDOS/releases/download/0.1/silero_vad.onnx;models/silero_vad.onnx"
 
 :: Loop through the list
 for /l %%i in (0,1,3) do (

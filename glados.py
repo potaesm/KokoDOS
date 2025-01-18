@@ -50,8 +50,7 @@ class GladosConfig:
     announcement: Optional[str]
     personality_preprompt: List[dict[str, str]]
     interruptible: bool
-    voice_model: str = VOICE_MODEL
-    speaker_id: Optional[int] = None
+    
 
     @classmethod
     def from_yaml(cls, path: str, key_to_config: Sequence[str] | None = ("Glados",)):
@@ -76,8 +75,6 @@ class GladosConfig:
 class Glados:
     def __init__(
         self,
-        voice_model: str,
-        speaker_id: Optional[int],
         completion_url: str,
         model: str,
         api_key: str | None = None,
@@ -110,10 +107,7 @@ class Glados:
         self.wake_word = wake_word
         self._vad_model = vad.VAD(model_path=str(Path.cwd() / "models" / VAD_MODEL))
         self._asr_model = asr.AudioTranscriber()
-        self._tts = tts.Synthesizer(
-            model_path=str(Path.cwd() / "models" / voice_model),
-            speaker_id=speaker_id,
-        )
+        self._tts = tts.Synthesizer()
 
         # warm up onnx ASR model
         self._asr_model.transcribe_file("data/0.wav")
@@ -142,6 +136,7 @@ class Glados:
         self.currently_speaking = False
         self.interruptible = interruptible
         self.shutdown_event = threading.Event()
+        self._tts.rate= 24000
 
         llm_thread = threading.Thread(target=self.process_LLM)
         llm_thread.start()
@@ -184,8 +179,6 @@ class Glados:
             )
 
         return cls(
-            voice_model=config.voice_model,
-            speaker_id=config.speaker_id,
             completion_url=config.completion_url,
             model=config.model,
             api_key=config.api_key,
@@ -514,7 +507,7 @@ class Glados:
                                         sentence.append(chunk)
                                         # If there is a pause token, send the sentence to the TTS queue
                                         if chunk in [
-                                            ",",
+                                            #",",
                                             ".",
                                             "!",
                                             "?",

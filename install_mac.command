@@ -20,15 +20,11 @@ echo "Downloading Models..."
 
 # Use simple arrays instead of associative arrays for better compatibility
 urls=(
-    "https://github.com/dnhkng/GlaDOS/releases/download/0.1/glados.onnx"
     "https://github.com/dnhkng/GlaDOS/releases/download/0.1/nemo-parakeet_tdt_ctc_110m.onnx"
-    "https://github.com/dnhkng/GlaDOS/releases/download/0.1/phomenizer_en.onnx"
     "https://github.com/dnhkng/GlaDOS/releases/download/0.1/silero_vad.onnx"
 )
 files=(
-    "models/glados.onnx"
     "models/nemo-parakeet_tdt_ctc_110m.onnx"
-    "models/phomenizer_en.onnx"
     "models/silero_vad.onnx"
 )
 

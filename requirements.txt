@@ -7,3 +7,5 @@ requests
 textual
 pyyaml
 librosa
+openai
+pydub
