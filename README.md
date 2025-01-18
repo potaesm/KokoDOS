@@ -1,6 +1,6 @@
 # KokoDOS: Yet another AI voice assistant
 
-[![video presentation](https://img.youtube.com/vi/EBHwOCoGMKQ/0.jpg)](https://www.youtube.com/watch?v=EBHwOCoGMKQ)
+[![video presentation](https://img.youtube.com/vi/AdGOiTHESJ4/0.jpg)](https://www.youtube.com/watch?v=AdGOiTHESJ4)
 
 KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice interaction experience.
 
