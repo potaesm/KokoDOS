@@ -1,3 +1,54 @@
+# KokoDOS: Yet another AI voice assistant
+
+KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/yourusername/kokoro-fastapi), KokoDOS provides a realistic, real-time voice interaction experience.
+
+## Installation
+Steps are mostly the same as for GlaDOS:
+
+## Windows Installation Process
+1. Open the Microsoft Store, search for `python` and install Python 3.12
+2. Download this repository, either:
+   1. Download and unzip this repository somewhere in your home folder, or
+   2. If you have Git set up, `git clone` this repository using `https://github.com/kaminoer/KokoDOS.git`
+3. In the repository folder, run the `install_windows.bat`, and wait until the installation in complete.
+4. Double click `start_windows.bat` to start KokoDOS!
+
+## macOS Installation Process
+This is still experimental. Any issues can be addressed in the Discord server. If you create an issue related to this, you will be referred to the Discord server.  Note: I was getting Segfaults!  Please leave feedback!
+
+
+1. Download this repository, either:
+   1. Download and unzip this repository somewhere in your home folder, or
+   2. In a terminal, `git clone` this repository using `https://github.com/kaminoer/KokoDOS.git`
+2. In a terminal, go to the repository folder and run these commands:
+
+         chmod +x install_mac.command
+         chmod +x start_mac.command
+
+3. In the Finder, double click `install_mac.command`, and wait until the installation in complete.
+4. Double click `start_mac.command` to start KokoDOS!
+
+## Linux Installation Process
+This is still experimental. Any issues can be addressed in the Discord server. If you create an issue related to this, you will be referred to the Discord server.  This has been tested on Ubuntu 24.04.1 LTS
+
+1. Install the PortAudio library, if you don't yet have it installed:
+   
+         sudo apt update
+         sudo apt install libportaudio2
+   
+2. Download this repository, either:
+   1. Download and unzip this repository somewhere in your home folder, or
+   2. In a terminal, `git clone` this repository using `https://github.com/kaminoer/KokoDOS.git`
+3. In a terminal, go to the repository folder and run these commands:
+   
+         chmod +x install_ubuntu.sh
+         chmod +x start_ubuntu.sh
+
+4. In the a terminal in the GLaODS folder, run `./install_ubuntu.sh`, and wait until the installation in complete.
+5. Run  `./start_ubuntu.sh` to start KokoDOS!
+
+Below is the original GlaDOS readme.
+---
 <a href="https://trendshift.io/repositories/9828" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9828" alt="dnhkng%2FGlaDOS | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 # GLaDOS Personality Core
