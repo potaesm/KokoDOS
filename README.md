@@ -1,12 +1,12 @@
-# KokoDOS: Yet another AI voice assistant
+# KokoDOS: AI voice assistant with vision
 
-[![video presentation](https://img.youtube.com/vi/AdGOiTHESJ4/0.jpg)](https://www.youtube.com/watch?v=AdGOiTHESJ4)
+https://github.com/user-attachments/assets/85c3ae79-40ed-485c-8d9f-0739e0e50172
 
-KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice interaction experience.
+KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice interaction experience. Additionally, you can share an interesting part of your screen with the assistant and have a conversation about it. You can ask it to summarize an article you are reading, describe a picture, translate, you name it. Press and hold `V` on your keyboard and move the overlay to a section of your screen that you want to share with the AI. Release `V` and ask your question!
 
 ## Installation
 Steps are mostly the same as for GlaDOS. Before cloning this repo, install the following: 
-1. `llama3.1:latest` LLM via [Ollama](https://ollama.com/) 
+1. `minicpm-v:latest` LLM via [Ollama](https://ollama.com/) (Make sure that the LLM of your choice supports vision if you want to use it. If you don't care about vision, you can use any LLM.)
 2. [Kokoro FastAPI](https://github.com/remsky/Kokoro-FastAPI?tab=readme-ov-file#quick-start) using Docker
 
 ## Windows Installation Process
