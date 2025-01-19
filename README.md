@@ -8,7 +8,7 @@ KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/d
 You can ask the AI to summarize an article you are reading, describe a picture, translate, you name it. 
 Press and hold `V` on your keyboard and move the overlay to a section of your screen that you want to share with the AI. Release `V` and ask your question! 
 
-Vision was tested on Windows only. Feel free to open issues if you run into problems on Linux or macOS.
+Vision was tested on Windows only. Feel free to open issues if you run into problems on Linux or macOS. You need `scrot` to use vision on Linux.
 
 ## Installation
 Steps are mostly the same as for GlaDOS. Before cloning this repo, install the following: 
