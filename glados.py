@@ -8,6 +8,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Optional, Sequence, Tuple
+import keyboard
+
 
 import numpy as np
 import requests
@@ -18,6 +20,8 @@ from Levenshtein import distance
 from loguru import logger
 
 from glados import asr, tts, vad
+from glados.vision import vision
+
 
 logger.remove(0)
 logger.add(sys.stderr, level="SUCCESS")
@@ -137,6 +141,11 @@ class Glados:
         self.interruptible = interruptible
         self.shutdown_event = threading.Event()
         self._tts.rate= 24000
+        
+        self.latest_screenshot = None
+        self.v_key_thread = threading.Thread(target=vision.monitor_v_key, daemon=True)
+        self.v_key_thread.start()
+
 
         llm_thread = threading.Thread(target=self.process_LLM)
         llm_thread.start()
@@ -475,9 +484,19 @@ class Glados:
         while not self.shutdown_event.is_set():
             try:
                 detected_text = self.llm_queue.get(timeout=0.1)
-
-                self.messages.append({"role": "user", "content": detected_text})
-
+                # Check if there is a stored screenshot
+                with vision.screenshot_lock:
+                    if vision.latest_screenshot:
+                        self.messages.append({
+                            "role": "user",
+                            "content": detected_text,
+                            "images": [vision.latest_screenshot]  # Attach the screenshot
+                        })
+                        # Clear the stored screenshot after using it
+                        vision.latest_screenshot = None
+                    else:
+                        # If no screenshot, append the message without an image
+                        self.messages.append({"role": "user", "content": detected_text})
                 data = {
                     "model": self.model,
                     "stream": True,
@@ -485,7 +504,8 @@ class Glados:
                 }
                 logger.debug(f"starting request on {self.messages=}")
                 logger.debug("Performing request to LLM server...")
-
+                #print(self.messages)
+                self.latest_screenshot = None
                 # Perform the request and process the stream
 
                 with requests.post(

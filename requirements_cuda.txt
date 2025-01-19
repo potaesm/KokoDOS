@@ -8,5 +8,7 @@ requests
 textual
 pyyaml
 librosa
-openai
-pydub
+pillow
+keyboard
+pyautogui
+mouse
