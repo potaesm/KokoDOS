@@ -2,7 +2,13 @@
 
 https://github.com/user-attachments/assets/85c3ae79-40ed-485c-8d9f-0739e0e50172
 
-KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice interaction experience. Additionally, you can share an interesting part of your screen with the assistant and have a conversation about it. You can ask it to summarize an article you are reading, describe a picture, translate, you name it. Press and hold `V` on your keyboard and move the overlay to a section of your screen that you want to share with the AI. Release `V` and ask your question!
+KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice interaction experience. Additionally, you can share a section of your screen with the assistant and have a conversation about it.
+
+## How to use vision
+You can ask the AI to summarize an article you are reading, describe a picture, translate, you name it. 
+Press and hold `V` on your keyboard and move the overlay to a section of your screen that you want to share with the AI. Release `V` and ask your question! 
+
+Vision was tested on Windows only. Feel free to open issues if you run into problems on Linux or macOS.
 
 ## Installation
 Steps are mostly the same as for GlaDOS. Before cloning this repo, install the following: 
