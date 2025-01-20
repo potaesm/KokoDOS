@@ -8,7 +8,6 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Optional, Sequence, Tuple
-import keyboard
 
 
 import numpy as np
