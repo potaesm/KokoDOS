@@ -29,9 +29,20 @@ class Vision:
         if self.canvas:
             self.canvas.delete("all")
             self.canvas.create_rectangle(0, 0, width, height, outline="red", width=2)
-            self.root.geometry(f"{width}x{height}+{left}+{top}")
-            self.root.update()
 
+            font_size = min(width, height) // 32
+            self.canvas.create_text(
+                width // 2,
+                height // 2,
+                text="Share with KokoDOS 👁️",
+                font=("Arial", font_size, "bold"), 
+                fill="red",
+                anchor="center"
+            )
+
+            self.root.geometry(f"{width}x{height}+{left}+{top}")
+
+            self.root.update()
     def capture_around_cursor(self, left, top, right, bottom):
         """
         Captures a screenshot within the specified bounding box.

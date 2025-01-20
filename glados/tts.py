@@ -50,7 +50,7 @@ class Synthesizer:
         """
         # Create the request payload
         payload = {"phonemes": phonemes, "voice": voice, "speed": speed}
-        print("Sending payload:", payload)
+        #print("Sending payload:", payload)
 
         # Make POST request to generate audio
         response = requests.post(
