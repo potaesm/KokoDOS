@@ -4,4 +4,4 @@
 cd "$(dirname "$0")"
 
 source .venv/bin/activate
-python glados.py
+python kokodos.py

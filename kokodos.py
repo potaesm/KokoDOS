@@ -18,15 +18,14 @@ import yaml
 from Levenshtein import distance
 from loguru import logger
 
-from glados import asr, tts, vad
-from glados.vision import vision
+from kokodos import asr, tts, vad
+from kokodos.vision import vision
 
 
 logger.remove(0)
 logger.add(sys.stderr, level="SUCCESS")
 
 VAD_MODEL = "silero_vad.onnx"
-VOICE_MODEL = "glados.onnx"
 PAUSE_TIME = 0.05  # Time to wait between processing loops
 SAMPLE_RATE = 16000  # Sample rate for input stream
 VAD_SIZE = 50  # Milliseconds of sample for Voice Activity Detection (VAD)
@@ -45,7 +44,7 @@ DEFAULT_PERSONALITY_PREPROMPT = (
 
 
 @dataclass
-class GladosConfig:
+class KokodosConfig:
     completion_url: str
     model: str
     api_key: Optional[str]
@@ -53,10 +52,11 @@ class GladosConfig:
     announcement: Optional[str]
     personality_preprompt: List[dict[str, str]]
     interruptible: bool
+    tts_voice: str
     
 
     @classmethod
-    def from_yaml(cls, path: str, key_to_config: Sequence[str] | None = ("Glados",)):
+    def from_yaml(cls, path: str, key_to_config: Sequence[str] | None = ("Kokodos",)):
         key_to_config = key_to_config or []
 
         try:
@@ -75,11 +75,12 @@ class GladosConfig:
         return cls(**config)
 
 
-class Glados:
+class Kokodos:
     def __init__(
         self,
         completion_url: str,
         model: str,
+        tts_voice: str,
         api_key: str | None = None,
         wake_word: str | None = None,
         personality_preprompt: Sequence[dict[str, str]] = DEFAULT_PERSONALITY_PREPROMPT,
@@ -110,7 +111,7 @@ class Glados:
         self.wake_word = wake_word
         self._vad_model = vad.VAD(model_path=str(Path.cwd() / "models" / VAD_MODEL))
         self._asr_model = asr.AudioTranscriber()
-        self._tts = tts.Synthesizer()
+        self._tts = tts.Synthesizer(voice=tts_voice)
 
         # warm up onnx ASR model
         self._asr_model.transcribe_file("data/0.wav")
@@ -179,7 +180,7 @@ class Glados:
         return self._messages
 
     @classmethod
-    def from_config(cls, config: GladosConfig):
+    def from_config(cls, config: KokodosConfig):
         personality_preprompt = []
         for line in config.personality_preprompt:
             personality_preprompt.append(
@@ -189,6 +190,7 @@ class Glados:
         return cls(
             completion_url=config.completion_url,
             model=config.model,
+            tts_voice=config.tts_voice,
             api_key=config.api_key,
             wake_word=config.wake_word,
             personality_preprompt=personality_preprompt,
@@ -198,11 +200,11 @@ class Glados:
 
     @classmethod
     def from_yaml(cls, path: str):
-        return cls.from_config(GladosConfig.from_yaml(path))
+        return cls.from_config(KokodosConfig.from_yaml(path))
 
     def start_listen_event_loop(self):
         """
-        Starts the Glados voice assistant, continuously listening for input and responding.
+        Starts the Kokodos voice assistant, continuously listening for input and responding.
         """
         self.input_stream.start()
         logger.success("Audio Modules Operational")
@@ -280,7 +282,7 @@ class Glados:
         """
         Calculates the nearest Levenshtein distance from the detected text to the wake word.
 
-        This is used as 'Glados' is not a common word, and Whisper can sometimes mishear it.
+        This is used as 'Kokodos' is not a common word, and Whisper can sometimes mishear it.
         """
         assert self.wake_word is not None, "Wake word should not be None"
 
@@ -404,7 +406,7 @@ class Glados:
                     #     self.messages.append(
                     #         {
                     #             "role": "system",
-                    #             "content": f"USER INTERRUPTED GLADOS, TEXT DELIVERED: {' '.join(system_text)}",
+                    #             "content": f"USER INTERRUPTED KOKODOS, TEXT DELIVERED: {' '.join(system_text)}",
                     #         }
                     #     )
                     assistant_text = []
@@ -615,10 +617,10 @@ class Glados:
 
 
 def start() -> None:
-    """Set up the LLM server and start GlaDOS."""
-    glados_config = GladosConfig.from_yaml("glados_config.yml")
-    glados = Glados.from_config(glados_config)
-    glados.start_listen_event_loop()
+    """Set up the LLM server and start kokodos."""
+    kokodos_config = KokodosConfig.from_yaml("kokodos_config.yml")
+    kokodos = Kokodos.from_config(kokodos_config)
+    kokodos.start_listen_event_loop()
 
 
 if __name__ == "__main__":

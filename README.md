@@ -15,6 +15,25 @@ Steps are mostly the same as for GlaDOS. Before cloning this repo, install the f
 1. `minicpm-v:latest` LLM via [Ollama](https://ollama.com/) (Make sure that the LLM of your choice supports vision if you want to use it. If you don't care about vision, you can use any LLM.)
 2. [Kokoro FastAPI](https://github.com/remsky/Kokoro-FastAPI?tab=readme-ov-file#quick-start) using Docker
 
+### Configure LLM and TTS voice
+Open `kokodos_config.yml` in the main directory and edit:
+1. `model` to set up your LLM, for example: `model: "minicpm-v:latest"`
+2. `tts_voice` to set up your Kokoro TTS voice, for example: `tts_voice: "af_bella"`
+    - Available voices are:
+      - `af_bella`
+      - `af_irulan`
+      - `af_nicole`
+      - `af_sarah`
+      - `af_sky`
+      - `am_adam`
+      - `am_michael`
+      - `bf_emma`
+      - `bf_isabella`
+      - `bm_george`
+      - `bm_lewis`
+
+   You can combine voices to further customize your AI, for example: `af_bella+af_nicole`.
+   
 ## Windows Installation Process
 1. Open the Microsoft Store, search for `python` and install Python 3.12
 2. Download this repository, either:

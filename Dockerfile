@@ -17,4 +17,4 @@ COPY . /app
 WORKDIR /app
 COPY --from=base-l /app/server /app/submodules/llama.cpp/server
 COPY --from=base-w /app/libwhisper.so /app/libwhisper.so
-CMD ["python3.11", "glados.py"]
+CMD ["python3.11", "kokodos.py"]

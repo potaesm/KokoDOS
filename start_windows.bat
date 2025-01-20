@@ -1,5 +1,5 @@
 @echo off
-REM Start GLaDOS
+REM Start kokodos
 
 call  .venv\Scripts\activate
-python glados.py
+python kokodos.py

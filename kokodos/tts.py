@@ -6,7 +6,8 @@ from scipy.io.wavfile import read as wav_read
 from io import BytesIO
 
 class Synthesizer:
-    
+    def __init__(self, voice: str = "af_bella"):
+        self.voice = voice
     def generate_speech_audio(self, text: str) -> bytes:
         phonemes = self._phonemizer(text)
         audio = self.generate_audio_from_phonemes(phonemes)
@@ -22,21 +23,17 @@ class Synthesizer:
         Returns:
         Tuple of (phonemes string, token list)
         """
-        # Create the request payload
         payload = {"text": text, "language": language}
 
-        # Make POST request to the phonemize endpoint
         response = requests.post("http://localhost:8880/text/phonemize", json=payload)
 
-        # Raise exception for error status codes
         response.raise_for_status()
 
-        # Parse the response
         result = response.json()
         return result["phonemes"]
 
     def generate_audio_from_phonemes(
-        self, phonemes: str, voice: str = "af_bella", speed: float = 1.0
+        self, phonemes: str, voice: Optional[str] = None, speed: float = 1.0
     ) -> Optional[np.ndarray]:
         """Generate audio from phonemes.
 
@@ -48,19 +45,15 @@ class Synthesizer:
         Returns:
             WAV audio bytes if successful, None if failed
         """
-        # Create the request payload
+        voice = voice or self.voice
         payload = {"phonemes": phonemes, "voice": voice, "speed": speed}
         #print("Sending payload:", payload)
-
-        # Make POST request to generate audio
         response = requests.post(
             "http://localhost:8880/text/generate_from_phonemes", json=payload
         )
 
-        # Raise exception for error status codes
         response.raise_for_status()
 
-        # Decode the WAV bytes into a NumPy array
         audio_bytes = response.content
         sample_rate, audio_data = self._decode_wav_bytes(audio_bytes)
 
@@ -75,11 +68,8 @@ class Synthesizer:
         Returns:
             Tuple of (sample_rate, audio_data).
         """
-        # Use BytesIO to treat the bytes as a file-like object
         with BytesIO(wav_bytes) as wav_file:
             sample_rate, audio_data = wav_read(wav_file)
-
-        # Ensure the audio data is in the correct format (e.g., float32)
         audio_data = audio_data.astype(np.float32) / np.iinfo(audio_data.dtype).max
 
         return sample_rate, audio_data
