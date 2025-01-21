@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Optional, Sequence, Tuple
-
+import signal
 
 import numpy as np
 import requests
@@ -34,7 +34,6 @@ BUFFER_SIZE = 600  # Milliseconds of buffer before VAD detection
 PAUSE_LIMIT = 500  # Milliseconds of pause allowed before processing
 SIMILARITY_THRESHOLD = 2  # Threshold for wake word similarity
 
-NEUROTOXIN_RELEASE_ALLOWED = False  # preparation for function calling, see issue #13
 DEFAULT_PERSONALITY_PREPROMPT = (
     {
         "role": "system",
@@ -106,6 +105,14 @@ class Kokodos:
         Args:
             wake_word (str, optional): The wake word to use for activation. Defaults to None.
         """
+
+        if not completion_url:
+            raise ValueError("completion_url is required")
+        if not model:
+            raise ValueError("model is required")
+        
+        signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
         self.completion_url = completion_url
         self.model = model
         self.wake_word = wake_word
@@ -160,20 +167,26 @@ class Kokodos:
             if not self.interruptible:
                 sd.wait()
 
-        def audio_callback_for_sdInputStream(
-            indata: np.ndarray, frames: int, time: Any, status: CallbackFlags
-        ):
-            data = indata.copy().squeeze()  # Reduce to single channel if necessary
-            vad_value = self._vad_model.process_chunk(data)
-            vad_confidence = vad_value > VAD_THRESHOLD
-            self._sample_queue.put((data, vad_confidence))
-
         self.input_stream = sd.InputStream(
             samplerate=SAMPLE_RATE,
             channels=1,
-            callback=audio_callback_for_sdInputStream,
+            callback=self.audio_callback_for_sdInputStream,
             blocksize=int(SAMPLE_RATE * VAD_SIZE / 1000),
         )
+    def _signal_handler(self, signum, frame):
+        """Handle signals to trigger graceful shutdown"""
+        logger.info(f"Received signal {signum}, shutting down...")
+        self.shutdown_event.set()
+        self.input_stream.stop()
+        sd.stop()
+    def audio_callback_for_sdInputStream(self, indata: np.ndarray, frames: int, time: Any, status: CallbackFlags):
+        try:
+            data = indata.copy().squeeze()
+            vad_value = self._vad_model.process_chunk(data)
+            vad_confidence = vad_value > VAD_THRESHOLD
+            self._sample_queue.put((data, vad_confidence))
+        except Exception as e:
+            logger.error(f"Error in audio callback: {e}")
 
     @property
     def messages(self) -> Sequence[dict[str, str]]:
@@ -203,20 +216,21 @@ class Kokodos:
         return cls.from_config(KokodosConfig.from_yaml(path))
 
     def start_listen_event_loop(self):
-        """
-        Starts the Kokodos voice assistant, continuously listening for input and responding.
-        """
-        self.input_stream.start()
-        logger.success("Audio Modules Operational")
-        logger.success("Listening...")
-        # Loop forever, but is 'paused' when new samples are not available
+        """Modified shutdown handling"""
         try:
-            while True:
+            self.input_stream.start()
+            logger.success("Audio Modules Operational")
+            logger.success("Listening...")
+            while not self.shutdown_event.is_set():
                 sample, vad_confidence = self._sample_queue.get()
                 self._handle_audio_sample(sample, vad_confidence)
         except KeyboardInterrupt:
+            self._signal_handler(signal.SIGINT, None)
+        finally:
             self.shutdown_event.set()
             self.input_stream.stop()
+            self.input_stream.close()
+            sd.stop()
 
     def _handle_audio_sample(self, sample: np.ndarray, vad_confidence: bool):
         """
@@ -301,6 +315,9 @@ class Kokodos:
         word is detected, the detected text is sent to the LLM model for processing.
         The audio stream is then reset, and listening continues.
         """
+        if self.shutdown_event.is_set():
+            return
+        
         logger.debug("Detected pause after speech. Processing...")
         self.input_stream.stop()
 
@@ -508,44 +525,49 @@ class Kokodos:
                 #print(self.messages)
                 self.latest_screenshot = None
                 # Perform the request and process the stream
-
-                with requests.post(
-                    self.completion_url,
-                    headers=self.prompt_headers,
-                    json=data,
-                    stream=True,
-                ) as response:
-                    sentence = []
-                    for line in response.iter_lines():
-                        if self.processing is False:
-                            break  # If the stop flag is set from new voice input, halt processing
-                        if line:  # Filter out empty keep-alive new lines
-                            try:
-                                cleaned_line = self._clean_raw_bytes(line)
-                                if cleaned_line:  # Add check for empty cleaned line
-                                    chunk = self._process_chunk(cleaned_line)
-                                    if chunk:
-                                        sentence.append(chunk)
-                                        # If there is a pause token, send the sentence to the TTS queue
-                                        if chunk in [
-                                            #",",
-                                            ".",
-                                            "!",
-                                            "?",
-                                            ":",
-                                            ";",
-                                            "?!",
-                                            "\n",
-                                            "\n\n",
-                                        ]:
-                                            self._process_sentence(sentence)
-                                            sentence = []
-                            except Exception as e:
-                                logger.error(f"Error processing line: {e}")
-                                continue
-
-                    if self.processing and sentence:
-                        self._process_sentence(sentence)
+                try:
+                    with requests.post(
+                        self.completion_url,
+                        headers=self.prompt_headers,
+                        json=data,
+                        stream=True,
+                        timeout=10
+                    ) as response:
+                        response.raise_for_status()
+                        sentence = []
+                        for line in response.iter_lines():
+                            if self.processing is False:
+                                break  # If the stop flag is set from new voice input, halt processing
+                            if line:  # Filter out empty keep-alive new lines
+                                try:
+                                    cleaned_line = self._clean_raw_bytes(line)
+                                    if cleaned_line:  # Add check for empty cleaned line
+                                        chunk = self._process_chunk(cleaned_line)
+                                        if chunk:
+                                            sentence.append(chunk)
+                                            # If there is a pause token, send the sentence to the TTS queue
+                                            if chunk in [
+                                                #",",
+                                                ".",
+                                                "!",
+                                                "?",
+                                                ":",
+                                                ";",
+                                                "?!",
+                                                "\n",
+                                                "\n\n",
+                                            ]:
+                                                self._process_sentence(sentence)
+                                                sentence = []
+                                except Exception as e:
+                                    logger.error(f"Error processing line: {e}")
+                                    continue
+                except requests.exceptions.RequestException as e:
+                    logger.error(f"LLM API request failed: {e}")
+                    self.tts_queue.put("I'm having trouble connecting to the Ollama API.")
+                    continue
+                if self.processing and sentence:
+                    self._process_sentence(sentence)
                     self.tts_queue.put("<EOS>")  # Add end of stream token to the queue
             except queue.Empty:
                 time.sleep(PAUSE_TIME)
@@ -617,11 +639,14 @@ class Kokodos:
 
 
 def start() -> None:
-    """Set up the LLM server and start kokodos."""
-    kokodos_config = KokodosConfig.from_yaml("kokodos_config.yml")
-    kokodos = Kokodos.from_config(kokodos_config)
-    kokodos.start_listen_event_loop()
-
+    try:
+        kokodos_config = KokodosConfig.from_yaml("kokodos_config.yml")
+        kokodos = Kokodos.from_config(kokodos_config)
+        kokodos.start_listen_event_loop()
+    except Exception as e:
+        logger.critical(f"Fatal error: {e}")
+    finally:
+        logger.info("Shutting down cleanly...")
 
 if __name__ == "__main__":
     start()
