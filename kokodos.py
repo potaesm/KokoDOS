@@ -111,12 +111,16 @@ class Kokodos:
         if not model:
             raise ValueError("model is required")
         
+        self.shutdown_event = threading.Event()
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
         self.completion_url = completion_url
         self.model = model
         self.wake_word = wake_word
         self._vad_model = vad.VAD(model_path=str(Path.cwd() / "models" / VAD_MODEL))
+        self.raw_audio_queue = queue.Queue()
+        self.vad_thread = threading.Thread(target=self._process_vad)
+        self.vad_thread.start()
         self._asr_model = asr.AudioTranscriber()
         self._tts = tts.Synthesizer(voice=tts_voice)
 
@@ -146,7 +150,6 @@ class Kokodos:
         self.processing = False
         self.currently_speaking = False
         self.interruptible = interruptible
-        self.shutdown_event = threading.Event()
         self._tts.rate= 24000
         
         self.latest_screenshot = None
@@ -185,14 +188,26 @@ class Kokodos:
         self.shutdown_event.set()
         sd.stop()
         self.input_stream.stop()
+        if self.vad_thread.is_alive():
+            self.vad_thread.join(timeout=1)
     def audio_callback_for_sdInputStream(self, indata: np.ndarray, frames: int, time: Any, status: CallbackFlags):
         try:
             data = indata.copy().squeeze()
-            vad_value = self._vad_model.process_chunk(data)
-            vad_confidence = vad_value > VAD_THRESHOLD
-            self._sample_queue.put((data, vad_confidence))
+            self.raw_audio_queue.put(data)
         except Exception as e:
             logger.error(f"Error in audio callback: {e}")
+    
+    def _process_vad(self):
+        while not self.shutdown_event.is_set():
+            try:
+                data = self.raw_audio_queue.get(timeout=0.1)
+                vad_value = self._vad_model.process_chunk(data)
+                vad_confidence = vad_value > VAD_THRESHOLD
+                self._sample_queue.put((data, vad_confidence))
+            except queue.Empty:
+                continue
+            except Exception as e:
+                logger.error(f"Error in VAD processing: {e}")
 
     @property
     def messages(self) -> Sequence[dict[str, str]]:
