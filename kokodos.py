@@ -51,6 +51,7 @@ class KokodosConfig:
     announcement: Optional[str]
     personality_preprompt: List[dict[str, str]]
     interruptible: bool
+    tts_api_url: str
     tts_voice: str
     
 
@@ -80,6 +81,7 @@ class Kokodos:
         completion_url: str,
         model: str,
         tts_voice: str,
+        tts_api_url: str,
         api_key: str | None = None,
         wake_word: str | None = None,
         personality_preprompt: Sequence[dict[str, str]] = DEFAULT_PERSONALITY_PREPROMPT,
@@ -122,7 +124,7 @@ class Kokodos:
         self.vad_thread = threading.Thread(target=self._process_vad)
         self.vad_thread.start()
         self._asr_model = asr.AudioTranscriber()
-        self._tts = tts.Synthesizer(voice=tts_voice)
+        self._tts = tts.Synthesizer(voice=tts_voice, api_base=tts_api_url)
 
         # warm up onnx ASR model
         self._asr_model.transcribe_file("data/0.wav")
@@ -225,6 +227,7 @@ class Kokodos:
             completion_url=config.completion_url,
             model=config.model,
             tts_voice=config.tts_voice,
+            tts_api_url=config.tts_api_url,
             api_key=config.api_key,
             wake_word=config.wake_word,
             personality_preprompt=personality_preprompt,
