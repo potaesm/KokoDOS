@@ -175,10 +175,16 @@ class Kokodos:
         )
     def _signal_handler(self, signum, frame):
         """Handle signals to trigger graceful shutdown"""
-        logger.info(f"Received signal {signum}, shutting down...")
+        if self.shutdown_event.is_set():
+            logger.warning("Forcing immediate shutdown!")
+            sys.exit(1)
+            
+        logger.info(f"Received signal {signum}, initiating shutdown...")
+        logger.remove()
+        logger.add(sys.stderr, level="INFO")
         self.shutdown_event.set()
-        self.input_stream.stop()
         sd.stop()
+        self.input_stream.stop()
     def audio_callback_for_sdInputStream(self, indata: np.ndarray, frames: int, time: Any, status: CallbackFlags):
         try:
             data = indata.copy().squeeze()
@@ -216,21 +222,21 @@ class Kokodos:
         return cls.from_config(KokodosConfig.from_yaml(path))
 
     def start_listen_event_loop(self):
-        """Modified shutdown handling"""
-        try:
-            self.input_stream.start()
-            logger.success("Audio Modules Operational")
-            logger.success("Listening...")
-            while not self.shutdown_event.is_set():
-                sample, vad_confidence = self._sample_queue.get()
+        self.input_stream.start()
+        logger.success("Audio Modules Operational")
+        logger.success("Listening...")
+        
+        while not self.shutdown_event.is_set():
+            try:
+                sample, vad_confidence = self._sample_queue.get(timeout=0.1)
                 self._handle_audio_sample(sample, vad_confidence)
-        except KeyboardInterrupt:
-            self._signal_handler(signal.SIGINT, None)
-        finally:
-            self.shutdown_event.set()
-            self.input_stream.stop()
-            self.input_stream.close()
-            sd.stop()
+            except queue.Empty:
+                continue
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                self.shutdown_event.set()
+
+        self.input_stream.stop()
 
     def _handle_audio_sample(self, sample: np.ndarray, vad_confidence: bool):
         """
@@ -646,7 +652,7 @@ def start() -> None:
     except Exception as e:
         logger.critical(f"Fatal error: {e}")
     finally:
-        logger.info("Shutting down cleanly...")
+        logger.info("Shutting down gracefully...")
 
 if __name__ == "__main__":
     start()
