@@ -1,8 +1,12 @@
-# KokoDOS: AI voice assistant with vision
+# KokoDOS: AI voice assistant with vision and real-time webcam chat
 
+Webcam chat demo (experimental):
+https://github.com/user-attachments/assets/d09b0c56-c13b-4b66-909e-8232646a57db
+
+Vision:
 https://github.com/user-attachments/assets/85c3ae79-40ed-485c-8d9f-0739e0e50172
 
-KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice interaction experience. Additionally, you can share a section of your screen with the assistant and have a conversation about it.
+KokoDOS is a project that transforms the excellent [GlaDOS](https://github.com/dnhkng/GlaDOS) project into a more traditional AI voice assistant. By leveraging [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI), KokoDOS provides a realistic, real-time voice and video interaction experience. Additionally, you can share a section of your screen with the assistant and have a conversation about it.
 
 ## How to use vision
 You can ask the AI to summarize an article you are reading, describe a picture, translate, you name it. 
