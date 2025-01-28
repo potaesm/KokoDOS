@@ -18,12 +18,12 @@ import yaml
 from Levenshtein import distance
 from loguru import logger
 
-from kokodos import asr, tts, vad
+from kokodos import asr, tts, vad, video
 from kokodos.vision import vision
 
 
 logger.remove(0)
-logger.add(sys.stderr, level="SUCCESS")
+logger.add(sys.stderr, level="DEBUG")
 
 VAD_MODEL = "silero_vad.onnx"
 PAUSE_TIME = 0.05  # Time to wait between processing loops
@@ -164,6 +164,7 @@ class Kokodos:
 
         tts_thread = threading.Thread(target=self.process_TTS_thread)
         tts_thread.start()
+        self.video_processor = video.VideoProcessor()
 
         if announcement:
             audio = self._tts.generate_speech_audio(announcement)
@@ -298,6 +299,7 @@ class Kokodos:
             )
             self._samples = list(self._buffer.queue)
             self._recording_started = True
+            self.video_processor.start_recording()
 
     def _process_activated_audio(self, sample: np.ndarray, vad_confidence: bool):
         """
@@ -344,7 +346,7 @@ class Kokodos:
         
         logger.debug("Detected pause after speech. Processing...")
         self.input_stream.stop()
-
+        self.video_processor.stop_recording()
         detected_text = self.asr(self._samples)
 
         if detected_text:
@@ -519,26 +521,29 @@ class Kokodos:
         return interrupted, percentage_played
 
     def process_LLM(self):
-        """
-        Processes the detected text using the LLM model.
-
-        """
         while not self.shutdown_event.is_set():
             try:
                 detected_text = self.llm_queue.get(timeout=0.1)
-                # Check if there is a stored screenshot
+                video_frames = self.video_processor.get_frames()
+                
                 with vision.screenshot_lock:
-                    if vision.latest_screenshot:
-                        self.messages.append({
-                            "role": "user",
-                            "content": detected_text,
-                            "images": [vision.latest_screenshot]  # Attach the screenshot
-                        })
-                        # Clear the stored screenshot after using it
-                        vision.latest_screenshot = None
-                    else:
-                        # If no screenshot, append the message without an image
-                        self.messages.append({"role": "user", "content": detected_text})
+                    vision_image = [vision.latest_screenshot] if vision.latest_screenshot else []
+                    vision.latest_screenshot = None
+
+                all_images = vision_image + video_frames
+                message_content = {
+                    "role": "user",
+                    "content": detected_text
+                }
+                
+                if all_images:
+                    message_content["images"] = all_images
+                    logger.success(f"Sending {len(all_images)} images with query")
+
+                self.messages.append(message_content)
+                all_images = None
+                logger.debug(f"Sending to LLM: {json.dumps(message_content, indent=2)[:500]}...")
+            
                 data = {
                     "model": self.model,
                     "stream": True,
@@ -546,9 +551,7 @@ class Kokodos:
                 }
                 logger.debug(f"starting request on {self.messages=}")
                 logger.debug("Performing request to LLM server...")
-                #print(self.messages)
                 self.latest_screenshot = None
-                # Perform the request and process the stream
                 try:
                     with requests.post(
                         self.completion_url,
