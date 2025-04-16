@@ -2,7 +2,7 @@ Kokodos:
   completion_url: "http://localhost:11434/api/chat"
   model: "minicpm-v:latest"
   tts_api_url: "http://localhost:8880"
-  tts_voice: "af_bella"
+  tts_voice: "af_nova"
   api_key: "Bearer your_api_key_here"
   announcement: "Hi boss, how can I help you today?"
   interruptible: true

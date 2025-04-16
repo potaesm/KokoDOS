@@ -12,3 +12,4 @@ pillow
 keyboard
 pyautogui
 mouse
+pynput

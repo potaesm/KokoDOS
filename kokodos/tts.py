@@ -18,7 +18,7 @@ class Synthesizer:
     def _phonemizer(self, text: str, language: str = "a") -> Tuple[str, List[int]]:
         """Get phonemes and tokens for input text using Kokoro FastAPI."""
         payload = {"text": text, "language": language}
-        url = f"{self.api_base}/text/phonemize"
+        url = f"{self.api_base}/dev/phonemize"
         try:
             response = self.session.post(url, json=payload, timeout=10)
             response.raise_for_status()
@@ -34,7 +34,7 @@ class Synthesizer:
         """Generate audio from phonemes."""
         voice = voice or self.voice
         payload = {"phonemes": phonemes, "voice": voice, "speed": speed}
-        url = f"{self.api_base}/text/generate_from_phonemes"
+        url = f"{self.api_base}/dev/generate_from_phonemes"
         try:
             response = self.session.post(url, json=payload, timeout=10)
             response.raise_for_status()
