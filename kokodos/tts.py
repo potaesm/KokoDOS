@@ -20,7 +20,7 @@ class Synthesizer:
         payload = {"text": text, "language": language}
         url = f"{self.api_base}/dev/phonemize"
         try:
-            response = self.session.post(url, json=payload, timeout=10)
+            response = self.session.post(url, json=payload, timeout=60)
             response.raise_for_status()
             result = response.json()
             return result["phonemes"], result["tokens"]
@@ -36,7 +36,7 @@ class Synthesizer:
         payload = {"phonemes": phonemes, "voice": voice, "speed": speed}
         url = f"{self.api_base}/dev/generate_from_phonemes"
         try:
-            response = self.session.post(url, json=payload, timeout=10)
+            response = self.session.post(url, json=payload, timeout=60)
             response.raise_for_status()
             sample_rate, audio_data = self._decode_wav_bytes(response.content)
             return audio_data
